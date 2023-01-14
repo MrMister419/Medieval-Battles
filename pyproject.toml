@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "python-template"
+name = "Medieval Battles"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Andrei Durbaca <andrei.swindon@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = ">=3.8.0,<3.9"
@@ -10,6 +10,7 @@ pygame = "^2.1.2"
 pgzero = "^1.2.1"
 easygui = "^0.98.3"
 fonts = "^0.0.3"
+Everything-Tkinter = "^0.2"
 
 [tool.poetry.dev-dependencies]
 

@@ -7,6 +7,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "everything-tkinter"
+version = "0.2"
+description = "Everything-Tkinter gives you everything you need for tkinter. Made by the creator of Pip-for-CMD."
+category = "main"
+optional = false
+python-versions = ">=3"
+
+[[package]]
 name = "fonts"
 version = "0.0.3"
 description = "Python Fonts"
@@ -45,10 +53,11 @@ python-versions = ">=3.6"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.0,<3.9"
-content-hash = "2c42242da92ac7ed4892db83b068c71b6e1f748b1d968168277a1b616539ccc8"
+content-hash = "bd57ecc6cefae1cb1e428057aee494b9d7f34dad31c423ebbf96cf4af2f4d16e"
 
 [metadata.files]
 easygui = []
+everything-tkinter = []
 fonts = []
 numpy = []
 pgzero = []
