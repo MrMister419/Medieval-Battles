@@ -1,13 +1,13 @@
-import os, pgzrun, random, threading, easygui, pygame
+import os
+x = 200
+y = 100
+s = os.environ['SDL_VIDEO_WINDOW_POS'] = f'{x},{y}'
+import pgzrun, random, threading, easygui, pygame
 from tkinter.constants import *
 from tkinter import *
 from tkinter import filedialog
 from pygame import mixer
-
-x = 80
-y = 0
-s = os.environ['SDL_VIDEO_WINDOW_POS'] = f'{x},{y}'
-
+from queue import Queue
 
 ##music player functions
 
@@ -151,7 +151,7 @@ def map_draw():
     tower2.draw()
 
 def draw():
-    global names
+    global names, player1, player2, counter
     screen.clear()
     pygame.display.set_caption('Medieval Battles')
     map_draw()
@@ -162,15 +162,15 @@ def draw():
             leftChars[char].death = True
             leftChars[char].image = 'grave'
             leftChars[char].draw()
-
-    if game_over == True or reaper.game_over == True:
-        print('Goodbye!')
-        exit()
-    while game_over == True or reaper.game_over == True:
-        print('Goodbye!')
-        exit()
+    
+    if not q.empty(): 
+        player1 = q.get()
+        player2 = q.get()
+        names = 'defined'
+        counter = 1
     
     ##Text
+
     if names == 'defined':
         text = player1 + "'s troops"
         text2 = player2 + "'s troops"
@@ -188,16 +188,20 @@ def draw():
 
     if turn == 'player1':
         if names == 'defined':
-            screen.draw.text(player1,"'s turn.",center=(530, 25),color='black',fontsize=40)
+            screen.draw.text((player1 + "'s turn."), center=(530, 25), color='black', fontsize=40)
         else:
             pass
             #screen.draw.text("Player One's turn.", center=(530, 25),color='black',fontsize=40)
     else:
         if names == 'defined':
-            screen.draw.text(player2,"'s turn.",center=(530, 25),color='black',fontsize=40)
+            screen.draw.text((player2 + "'s turn."), center=(530, 25), color='black', fontsize=40)
         else:
             pass
             #screen.draw.text("Player Two's turn.", center=(530, 25),color='black',fontsize=40)
+        
+    if names == 'defined' and counter == 1:
+        q.task_done()
+        counter = 3.14
     ##
 
 def update():
@@ -398,7 +402,8 @@ def right_target_function(left_options, player2, left_options_mod):
             if choice == left_options[char]:
                 selected_target2 = leftChars[char]
                 selected_target_name2 = left_options_mod[char]
-
+    
+    msg = " ".join(["You selected the", selected_target_name2 + '.'])
     easygui.msgbox(msg, title)
     arguments = [selected_target2, selected_target_name2]
     return arguments
@@ -418,13 +423,17 @@ def player1_attack(player1_spell, selected_char1, selected_target1, player1, pla
         player1_spell = 'off'
     
     if selected_char_name1 == 'Wizard':
+        wizard.uses -= 1
         player1_spell = 'on'
         message = " ".join([player1, "has used his", selected_char_name1, 'to cast a spell on his army. Next time it is', player1 + "'s turn, his army will deal more damage. The damage dealt will be random. Press OK to continue to", player2 + "'s turn."])
     elif selected_char_name1 == 'Healing Potion':
+        healer_left.uses -= 1
         added_health1 = random.randint(1, 3)
         for char in range(10):
             leftChars[char].health = leftChars[char].health + added_health1
-        message = " ".join([player1, "has used his", selected_char_name1, 'to heal his army. All of', player1 + "'s troops have been given back", str(added_health1 * 10), "healthpoints each. Press OK to continue to", player2 + "'s turn."])
+            if leftChars[char].health > 100:
+                leftChars[char].health = 100
+        message = " ".join([player1, "has used his", selected_char_name1, 'to heal his army. All of', player1 + "'s troops have been given back", str(added_health1 * 10), "healthpoints each, to a maximum of 100. Press OK to continue to", player2 + "'s turn."])
     else:
         if storm_random1 > 9:
             message = " ".join(['A huge thunderstorm has swept over the battlefield and', player1, 'has not been able to be so damaging in his attack: his damage has been decreased by 20 healthpoints in this round.', player1, "has used his", selected_char_name1, 'to do', str(selected_char1.damage * 10), "damage to", player2 + "'s", selected_target_name1 + '. The', selected_target_name1, 'now has', str(selected_target1.health * 10), 'health. Press Ok to continue to', player2 + "'s turn."])
@@ -442,22 +451,25 @@ def player2_attack(player2_spell, selected_char2, selected_target2, player1, pla
     storm_random2 = random.randint(1, 10)
     if storm_random2 > 9:
         storm_effect2 = 2
-    print('451', storm_effect2)
     if player2_spell == 'off':
         selected_target2.health = selected_target2.health - (selected_char2.damage - storm_effect2)
     elif player2_spell == 'on' and selected_char_name2 != 'Healing Potion' and selected_char_name2 != 'Sorcerer':
         added_damage2 = random.randint(1, 7)
-        selected_target2.health = selected_target2.health - ((selected_char2.damage + added_damage2) - storm_effect)
+        selected_target2.health = selected_target2.health - ((selected_char2.damage + added_damage2) - storm_effect2)
         player2_spell = 'off'
 
     if selected_char_name2 == 'Sorcerer':
+        sorcerer.uses -= 1
         player2_spell = 'on'
         message = " ".join([player2, "has used his", selected_char_name2, 'to cast a spell on his army. Next time it is', player2 + "'s turn, his army will deal more damage. The damage dealt will be random. Press OK to continue to", player1 + "'s turn."])
     elif selected_char_name2 == 'Healing Potion':
+        healer_right.uses -= 1
         added_health2 = random.randint(1, 3)
         for char in range(10):
             rightChars[char].health = rightChars[char].health + added_health2
-        message = " ".join([player2, "has used his", selected_char_name2, 'to heal his army. All of', player2 + "'s troops have been given back", str(added_health2 * 10), "healthpoints. Press OK to continue to", player1 + "'s turn."])
+            if rightChars[char].health > 100:
+                rightChars[char].health = 100
+        message = " ".join([player2, "has used his", selected_char_name2, 'to heal his army. All of', player2 + "'s troops have been given back", str(added_health2 * 10), "healthpoints each, to a maximum of 100. Press OK to continue to", player1 + "'s turn."])
     else:
         if storm_random2 > 9:
             message = " ".join(['A huge thunderstorm has swept over the battlefield and', player2, 'has not been able to be so damaging in his attack: his damage has been decreased by 20 healthpoints in this round.', player2, "has used his", selected_char_name2, 'to do', str(selected_char2.damage * 10), "damage to", player1 + "'s", selected_target_name2 + '. The', selected_target_name2, 'now has', str(selected_target2.health * 10), 'health. Press Ok to continue to', player1 + "'s turn."])
@@ -471,11 +483,13 @@ def player2_attack(player2_spell, selected_char2, selected_target2, player1, pla
     return arguments
 
 
-def easygui_function(turn, selection, count, game, names, player1_spell, player2_spell, right_options, left_options, right_options_mod, left_options_mod, rightChars, leftChars):
+def easygui_function(q, turn, selection, count, game, names, player1_spell, player2_spell, right_options, left_options, right_options_mod, left_options_mod, rightChars, leftChars):
     loser = None
     players = start()
     player1 = players[0]
     player2 = players[1]
+    q.put(player1)
+    q.put(player2)
     while loser == None:
         if turn == 'player1':
             arguments = left_selection_function(left_options, player1, left_options_mod)
@@ -531,6 +545,7 @@ def easygui_function(turn, selection, count, game, names, player1_spell, player2
 turn = 'player1'
 selection = 'player'
 count = 'new'
+counter = 0
 game = ':-)'
 names = 'Games take too long to program. :-('
 player1_spell = 'off'
@@ -685,13 +700,15 @@ my_map = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           [0, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 3, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
-easygui_thread = threading.Thread(target=easygui_function, args = (turn, selection, count, game, names, player1_spell, player2_spell, right_options, left_options, right_options_mod, left_options_mod, rightChars, leftChars))
+q = Queue()
+easygui_thread = threading.Thread(target=easygui_function, args = (q, turn, selection, count, game, names, player1_spell, player2_spell, right_options, left_options, right_options_mod, left_options_mod, rightChars, leftChars))
+easygui_thread.daemon = True
 
 music_thread = threading.Thread(target = music_player)
 
-try:
-    game_over = easygui_thread.start()
-    music_thread.start()
-    pgzrun.go()
-except:
-    print('    An error has occurred. :( Please try again or contact Developer Durbaca for help.')
+#try:
+game_over = easygui_thread.start()
+music_thread.start()
+pgzrun.go()
+#except:
+    #print('    An error has occurred. :( Please try again or contact Developer Durbaca for help.')
