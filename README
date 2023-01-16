@@ -1,1 +1,17 @@
-Enjoy!
+Hello,
+
+When it is your turn, read the messages and choose the correct option. Only one player can play on each turn, and you cannot recieve damage while attacking.
+
+This game is best used inside an ide such as idle or thonny if possible. This is because replit tends to be very slow or crash and it does not allow window positioning as well as other features. If you do this, make sure to move the files from replit into the computer as well as installing the modules used.
+
+I recommend that you leave the music on in the music player and then click on the pygame display window so that it moves above the music player and is visible.
+
+As the game is quite long, you may want an easy + fast way to skip to the end for testing; this can be done quite simply by following the steps:
+1) go to line 516 and change it to 'while loser != None:'
+2) go to lines 557 and 558 and take away the hashtags
+you should be left with this:
+line 516:    while loser != None:
+line 557:    loser = player2
+line 558:    winner = player1
+
+Enjoy! :)
